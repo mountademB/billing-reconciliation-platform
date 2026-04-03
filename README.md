@@ -167,7 +167,7 @@ mapper/
 ## 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/billing-reconciliation-platform.git
+git clone git remote add origin https://github.com/mountademB/billing-reconciliation-platform.git
 cd billing-reconciliation-platform
 ```
 
