@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { finalize, timeout } from 'rxjs';
+import { timeout } from 'rxjs';
 import { DashboardService, BillingDashboardSummary } from '../../core/services/dashboard.service';
 import { Invoice, InvoiceService } from '../../core/services/invoice.service';
 
@@ -16,6 +16,7 @@ import { Invoice, InvoiceService } from '../../core/services/invoice.service';
           <h2>Dashboard</h2>
           <p class="muted">Finance operations overview</p>
         </div>
+
         <div class="header-actions">
           <a routerLink="/invoices/new" class="btn btn-primary">New Invoice</a>
           <a routerLink="/customers/new" class="btn">New Customer</a>
@@ -28,35 +29,35 @@ import { Invoice, InvoiceService } from '../../core/services/invoice.service';
         <p class="error">{{ errorMessage }}</p>
       } @else if (summary) {
         <div class="cards">
-          <article class="stat-card">
+          <a routerLink="/invoices" class="stat-card">
             <span>Total Invoices</span>
             <strong>{{ summary.totalInvoices }}</strong>
-          </article>
+          </a>
 
-          <article class="stat-card">
+          <a routerLink="/invoices" class="stat-card highlight-card">
             <span>Outstanding Balance</span>
             <strong>{{ formatMoney(summary.totalOutstandingBalance) }}</strong>
-          </article>
+          </a>
 
-          <article class="stat-card">
+          <a routerLink="/invoices" class="stat-card overdue-card">
             <span>Overdue Invoices</span>
             <strong>{{ summary.totalOverdueInvoices }}</strong>
-          </article>
+          </a>
 
-          <article class="stat-card">
+          <a routerLink="/invoices" class="stat-card paid-card">
             <span>Paid Invoices</span>
             <strong>{{ summary.totalPaidInvoices }}</strong>
-          </article>
+          </a>
 
-          <article class="stat-card">
+          <a routerLink="/customers" class="stat-card">
             <span>Customers</span>
             <strong>{{ summary.totalCustomers }}</strong>
-          </article>
+          </a>
 
-          <article class="stat-card">
+          <a routerLink="/invoices" class="stat-card">
             <span>Revenue Collected</span>
             <strong>{{ formatMoney(summary.totalRevenueCollected) }}</strong>
-          </article>
+          </a>
         </div>
 
         <div class="sections">
@@ -86,7 +87,7 @@ import { Invoice, InvoiceService } from '../../core/services/invoice.service';
                         <td>{{ invoice.invoiceNumber }}</td>
                         <td>{{ invoice.customerName }}</td>
                         <td>{{ invoice.dueDate }}</td>
-                        <td>{{ formatMoney(invoice.balanceDue) }}</td>
+                        <td class="money-strong">{{ formatMoney(invoice.balanceDue) }}</td>
                         <td>
                           <a [routerLink]="['/invoices', invoice.id]" class="btn">Open</a>
                         </td>
@@ -114,6 +115,7 @@ import { Invoice, InvoiceService } from '../../core/services/invoice.service';
                       <strong>{{ invoice.invoiceNumber }}</strong>
                       <span>{{ invoice.customerName }}</span>
                     </div>
+
                     <div class="quick-meta">
                       <span>{{ invoice.status }}</span>
                       <strong>{{ formatMoney(invoice.balanceDue) }}</strong>
@@ -128,33 +130,74 @@ import { Invoice, InvoiceService } from '../../core/services/invoice.service';
     </section>
   `,
   styles: [`
-    .page { padding: 24px; display: grid; gap: 20px; }
+    .page { padding: 24px; display: grid; gap: 18px; }
     .page-header { display: flex; justify-content: space-between; align-items: start; gap: 16px; }
     .muted { color: #6b7280; margin: 4px 0 0; }
     .header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-    .stat-card { background: #fff; border: 1px solid #ddd; border-radius: 12px; padding: 18px; display: grid; gap: 8px; }
+
+    .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .stat-card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 14px;
+      padding: 18px;
+      display: grid;
+      gap: 8px;
+      text-decoration: none;
+      color: inherit;
+      transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+    }
+    .stat-card:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(0,0,0,.06); border-color: #c7ccd4; }
     .stat-card span { color: #6b7280; font-size: 14px; }
-    .stat-card strong { font-size: 28px; color: #111827; }
-    .sections { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; }
-    .card { background: #fff; border: 1px solid #ddd; border-radius: 12px; padding: 20px; }
-    .section-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .stat-card strong { font-size: 30px; color: #111827; }
+    .highlight-card strong { color: #111827; }
+    .overdue-card strong { color: #b91c1c; }
+    .paid-card strong { color: #166534; }
+
+    .sections { display: grid; grid-template-columns: 1.2fr 1fr; gap: 18px; }
+    .card { background: #fff; border: 1px solid #ddd; border-radius: 14px; padding: 20px; }
+    .section-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+
     .table-wrap { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; vertical-align: middle; }
-    .quick-links { display: grid; gap: 12px; }
-    .quick-link { display: flex; justify-content: space-between; gap: 16px; padding: 14px; border: 1px solid #eee; border-radius: 12px; text-decoration: none; color: inherit; }
-    .quick-link:hover { background: #f9fafb; }
+    th, td { padding: 10px 12px; border-bottom: 1px solid #eee; text-align: left; vertical-align: middle; }
+    .money-strong { font-weight: 700; }
+
+    .quick-links { display: grid; gap: 10px; }
+    .quick-link {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px;
+      border: 1px solid #eee;
+      border-radius: 12px;
+      text-decoration: none;
+      color: inherit;
+      transition: background .12s ease, border-color .12s ease;
+    }
+    .quick-link:hover { background: #f9fafb; border-color: #d7dce3; }
     .quick-link div { display: grid; gap: 4px; }
     .quick-link span { color: #6b7280; font-size: 14px; }
     .quick-meta { text-align: right; }
-    .btn, .link-btn { border: 1px solid #ccc; background: #fff; padding: 8px 12px; border-radius: 8px; cursor: pointer; text-decoration: none; color: inherit; width: fit-content; }
+
+    .btn, .link-btn {
+      border: 1px solid #ccc;
+      background: #fff;
+      padding: 8px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      width: fit-content;
+    }
     .btn-primary { background: #111827; color: #fff; border-color: #111827; }
     .error { color: #b91c1c; }
+
     @media (max-width: 1100px) {
       .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .sections { grid-template-columns: 1fr; }
     }
+
     @media (max-width: 700px) {
       .cards { grid-template-columns: 1fr; }
       .page-header { flex-direction: column; align-items: stretch; }

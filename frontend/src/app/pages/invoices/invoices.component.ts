@@ -99,7 +99,7 @@ import { Invoice, InvoiceService, InvoiceStatus } from '../../core/services/invo
                   </td>
                   <td>{{ formatMoney(invoice.totalAmount) }}</td>
                   <td>{{ formatMoney(invoice.amountPaid) }}</td>
-                  <td>{{ formatMoney(invoice.balanceDue) }}</td>
+                  <td class="money-strong">{{ formatMoney(invoice.balanceDue) }}</td>
                   <td class="actions">
                     <a [routerLink]="['/invoices', invoice.id]" class="btn">View</a>
                     @if (invoice.status === 'DRAFT') {
@@ -121,29 +121,61 @@ import { Invoice, InvoiceService, InvoiceStatus } from '../../core/services/invo
     .page { padding: 24px; }
     .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
     .header-actions { display: flex; gap: 8px; }
-    .filters-card { background: #fff; border: 1px solid #ddd; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+
+    .filters-card { background: #fff; border: 1px solid #ddd; border-radius: 14px; padding: 16px; margin-bottom: 16px; }
     .filters-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .filters-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
     .filters-grid label { display: grid; gap: 8px; }
-    .filters-grid input, .filters-grid select { width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 8px; font: inherit; }
-    .table-wrap { overflow-x: auto; background: #fff; border: 1px solid #ddd; border-radius: 12px; }
+    .filters-grid input, .filters-grid select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font: inherit;
+    }
+
+    .table-wrap { overflow-x: auto; background: #fff; border: 1px solid #ddd; border-radius: 14px; }
     table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; vertical-align: middle; }
+    th, td { padding: 10px 12px; border-bottom: 1px solid #eee; text-align: left; vertical-align: middle; }
+    .money-strong { font-weight: 700; }
+
     .actions { display: flex; gap: 8px; flex-wrap: wrap; min-width: 180px; }
-    .btn { border: 1px solid #ccc; background: #fff; padding: 8px 12px; border-radius: 8px; cursor: pointer; text-decoration: none; color: inherit; }
+
+    .btn {
+      border: 1px solid #ccc;
+      background: #fff;
+      padding: 8px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+    }
     .btn-primary { background: #111827; color: #fff; border-color: #111827; }
     .btn-danger { background: #b91c1c; color: #fff; border-color: #b91c1c; }
-    .badge { display: inline-block; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .02em;
+    }
     .draft { background: #e5e7eb; color: #111827; }
     .issued { background: #dbeafe; color: #1d4ed8; }
-    .partially-paid { background: #fef3c7; color: #92400e; }
-    .paid { background: #dcfce7; color: #166534; }
-    .overdue { background: #fee2e2; color: #991b1b; }
+    .partially-paid { background: #fef3c7; color: #92400e; box-shadow: inset 0 0 0 1px #f4d37b; }
+    .paid { background: #dcfce7; color: #166534; box-shadow: inset 0 0 0 1px #8fdda8; }
+    .overdue { background: #fee2e2; color: #991b1b; box-shadow: inset 0 0 0 1px #f5a6a6; }
     .cancelled { background: #f3f4f6; color: #6b7280; }
+
     .error { color: #b91c1c; }
+
     @media (max-width: 1200px) {
       .filters-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
+
     @media (max-width: 700px) {
       .filters-grid { grid-template-columns: 1fr; }
     }

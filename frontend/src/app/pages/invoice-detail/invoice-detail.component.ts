@@ -36,7 +36,10 @@ import {
         <div class="detail-grid">
           <section class="card">
             <div class="card-header">
-              <h3>Invoice Header</h3>
+              <div>
+                <h3>Invoice Header</h3>
+                <p class="muted">Manage invoice workflow from here</p>
+              </div>
               <span class="badge" [class]="badgeClass(invoice.status)">{{ invoice.status }}</span>
             </div>
 
@@ -49,22 +52,25 @@ import {
 
             <div class="action-row">
               @if (invoice.status === 'DRAFT') {
-                <button type="button" class="btn btn-primary" (click)="changeStatus('ISSUED')">Issue</button>
+                <button type="button" class="btn btn-primary" (click)="changeStatus('ISSUED')">Issue Invoice</button>
               }
               @if (invoice.status === 'DRAFT' || (invoice.status === 'ISSUED' && invoice.amountPaid === 0)) {
-                <button type="button" class="btn btn-danger" (click)="changeStatus('CANCELLED')">Cancel</button>
+                <button type="button" class="btn btn-danger" (click)="changeStatus('CANCELLED')">Cancel Invoice</button>
+              }
+              @if (canRecordPayment()) {
+                <button type="button" class="btn btn-success" (click)="scrollToPaymentForm()">Record Payment</button>
               }
             </div>
           </section>
 
-          <section class="card">
+          <section class="card totals-card">
             <h3>Totals</h3>
             <div class="summary">
               <div><span>Subtotal</span><strong>{{ formatMoney(invoice.subtotal) }}</strong></div>
               <div><span>Tax</span><strong>{{ formatMoney(invoice.taxAmount) }}</strong></div>
               <div><span>Total</span><strong>{{ formatMoney(invoice.totalAmount) }}</strong></div>
               <div><span>Paid</span><strong>{{ formatMoney(invoice.amountPaid) }}</strong></div>
-              <div class="grand-total"><span>Balance</span><strong>{{ formatMoney(invoice.balanceDue) }}</strong></div>
+              <div class="balance-row"><span>Balance</span><strong>{{ formatMoney(invoice.balanceDue) }}</strong></div>
             </div>
           </section>
         </div>
@@ -87,7 +93,7 @@ import {
                     <td>{{ line.description }}</td>
                     <td>{{ formatMoney(line.quantity) }}</td>
                     <td>{{ formatMoney(line.unitPrice) }}</td>
-                    <td>{{ formatMoney(line.lineTotal) }}</td>
+                    <td class="money-strong">{{ formatMoney(line.lineTotal) }}</td>
                   </tr>
                 }
               </tbody>
@@ -123,7 +129,7 @@ import {
                   @for (payment of payments; track payment.id) {
                     <tr>
                       <td>{{ payment.paymentDate }}</td>
-                      <td>{{ formatMoney(payment.amount) }}</td>
+                      <td class="money-strong">{{ formatMoney(payment.amount) }}</td>
                       <td>{{ payment.method }}</td>
                       <td>{{ payment.reference || '-' }}</td>
                       <td>{{ payment.notes || '-' }}</td>
@@ -136,7 +142,7 @@ import {
         </section>
 
         @if (invoice && canRecordPayment()) {
-          <section class="card">
+          <section class="card" id="payment-form-section">
             <h3>Record Payment</h3>
 
             @if (paymentErrorMessage) {
@@ -183,35 +189,85 @@ import {
     </section>
   `,
   styles: [`
-    .page { padding: 24px; display: grid; gap: 20px; }
+    .page { padding: 24px; display: grid; gap: 18px; }
     .page-header { display: flex; justify-content: space-between; align-items: start; gap: 16px; }
     .muted { color: #6b7280; margin: 4px 0 0; }
-    .detail-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-    .card { background: #fff; border: 1px solid #ddd; border-radius: 12px; padding: 20px; }
-    .card-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
-    .meta-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+
+    .detail-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; }
+    .card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 14px;
+      padding: 18px;
+      scroll-margin-top: 24px;
+    }
+
+    .card-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .meta-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
     .meta-grid div, .summary div { display: flex; justify-content: space-between; gap: 16px; }
-    .summary { display: grid; gap: 12px; }
-    .grand-total { font-size: 18px; }
-    .action-row { display: flex; gap: 8px; margin-top: 20px; }
+
+    .action-row { display: flex; gap: 8px; margin-top: 18px; flex-wrap: wrap; }
+
+    .totals-card { border-color: #d7dce3; }
+    .summary { display: grid; gap: 10px; }
+    .balance-row {
+      margin-top: 8px;
+      padding-top: 12px;
+      border-top: 1px solid #eceff3;
+      font-size: 18px;
+    }
+    .balance-row strong { font-size: 28px; color: #111827; }
+
     .table-wrap { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; vertical-align: middle; }
-    .payment-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    th, td { padding: 10px 12px; border-bottom: 1px solid #eee; text-align: left; vertical-align: middle; }
+    .money-strong { font-weight: 700; }
+
+    .payment-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
     .payment-form label { display: grid; gap: 8px; }
     .payment-form .notes { grid-column: 1 / -1; }
-    input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 8px; font: inherit; }
-    .btn { border: 1px solid #ccc; background: #fff; padding: 10px 14px; border-radius: 8px; cursor: pointer; text-decoration: none; color: inherit; width: fit-content; }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font: inherit;
+    }
+
+    .btn {
+      border: 1px solid #ccc;
+      background: #fff;
+      padding: 10px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      width: fit-content;
+    }
     .btn-primary { background: #111827; color: #fff; border-color: #111827; }
     .btn-danger { background: #b91c1c; color: #fff; border-color: #b91c1c; }
-    .badge { display: inline-block; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .btn-success { background: #166534; color: #fff; border-color: #166534; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .02em;
+    }
     .draft { background: #e5e7eb; color: #111827; }
     .issued { background: #dbeafe; color: #1d4ed8; }
-    .partially-paid { background: #fef3c7; color: #92400e; }
-    .paid { background: #dcfce7; color: #166534; }
-    .overdue { background: #fee2e2; color: #991b1b; }
+    .partially-paid { background: #fef3c7; color: #92400e; box-shadow: inset 0 0 0 1px #f4d37b; }
+    .paid { background: #dcfce7; color: #166534; box-shadow: inset 0 0 0 1px #8fdda8; }
+    .overdue { background: #fee2e2; color: #991b1b; box-shadow: inset 0 0 0 1px #f5a6a6; }
     .cancelled { background: #f3f4f6; color: #6b7280; }
+
     .error { color: #b91c1c; }
+
     @media (max-width: 960px) {
       .detail-grid, .payment-form, .meta-grid { grid-template-columns: 1fr; }
     }
@@ -326,6 +382,13 @@ export class InvoiceDetailComponent implements OnInit {
   canRecordPayment(): boolean {
     if (!this.invoice) return false;
     return ['ISSUED', 'PARTIALLY_PAID', 'OVERDUE'].includes(this.invoice.status) && this.invoice.balanceDue > 0;
+  }
+
+  scrollToPaymentForm(): void {
+    document.getElementById('payment-form-section')?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
   }
 
   submitPayment(): void {
