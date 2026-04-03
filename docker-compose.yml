@@ -1,0 +1,38 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: billing-postgres
+    environment:
+      POSTGRES_DB: billing_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "55432:5432"
+    volumes:
+      - billing_postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+    container_name: billing-backend
+    depends_on:
+      - postgres
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/billing_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SERVER_PORT: 8080
+    ports:
+      - "8081:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: billing-frontend
+    depends_on:
+      - backend
+    ports:
+      - "4200:80"
+
+volumes:
+  billing_postgres_data:
